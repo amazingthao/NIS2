@@ -1,5 +1,0 @@
-# Ignore the folder with all downloaded dependencies
-node_modules
-
-# Ignore the file with secret keys
-.env
