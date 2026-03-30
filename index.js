@@ -38,7 +38,7 @@ app.post("/letschat", async(req,res)=>{ // Defines the main POST route.
             system: system, 
             // The messages are taken directly from the request body.
             messages: messages,
-            max_tokens: 2200,
+            max_tokens: 1000,
             temperature: 0.7,
         });
         
