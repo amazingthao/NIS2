@@ -61,3 +61,11 @@ const port = process.env.PORT || 5000; // Sets the port for the server, using an
 
 // Starts the server and makes it listen for incoming requests on the specified port.
 app.listen(port, () => console.log(`Server listening on port ${port}`));
+
+app.get("/test", async (req, res) => {
+    const keyLoaded = process.env.ANTHROPIC_API_KEY ? "YES - key is present" : "NO - key is missing";
+    res.json({ 
+        status: "server is running",
+        apiKey: keyLoaded
+    });
+});
