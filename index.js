@@ -33,7 +33,7 @@ app.post("/letschat", async(req,res)=>{ // Defines the main POST route.
         }
 
         const response = await anthropic.messages.create({
-            model: "claude-3-haiku-20240307",
+            model: "claude-haiku-4-5-20251001",
             // The system prompt is now taken directly from the request body.
             system: system, 
             // The messages are taken directly from the request body.
