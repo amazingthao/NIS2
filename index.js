@@ -1,63 +1,78 @@
 // --- Imports ---
-const express = require("express"); // Imports the Express framework to create and manage the server.
-const cors = require("cors"); // Imports the CORS middleware to allow cross-origin requests (from Storyline to your server).
-require("dotenv").config(); // Imports and runs the dotenv configuration, loading variables from your .env file.
-const { Anthropic } = require("@anthropic-ai/sdk"); // Imports the official Anthropic library, specifically destructuring the Anthropic class.
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+const { Anthropic } = require("@anthropic-ai/sdk");
 
 // --- App Initialization ---
-const app = express(); // Creates an instance of an Express application.
+const app = express();
 
 // --- Middleware ---
-app.use(cors()); // Enables CORS for all routes, allowing your Storyline project to make requests to this server.
-app.use(express.json()); // Enables the express.json middleware, which parses incoming request bodies with a JSON payload.
+app.use(cors());
+app.use(express.json());
 
 // --- Anthropic API Client ---
-const anthropic = new Anthropic({ // Creates a new instance of the Anthropic client.
-    apiKey: process.env['ANTHROPIC_API_KEY'], // Configures the client with your API key from the .env file.
+const anthropic = new Anthropic({
+    apiKey: process.env['ANTHROPIC_API_KEY'],
 });
 
 // --- Basic Test Route ---
-app.get("/", async(req,res)=>{ // Defines a simple GET route for the root URL ("/").
-    res.send("Hello World."); // Sends a "Hello World." response, useful for testing if the server is running.
+app.get("/", async (req, res) => {
+    res.send("Hello World.");
 });
 
-// --- Main Chat Route
-app.post("/letschat", async(req,res)=>{ // Defines the main POST route.
-    try{ 
-        // Now, we expect the frontend to send BOTH the system prompt and the messages array.
-        const { system, messages } = req.body; 
+// --- API Key Test Route ---
+app.get("/test", async (req, res) => {
+    const keyLoaded = process.env.ANTHROPIC_API_KEY ? "YES - key is present" : "NO - key is missing";
+    res.json({
+        status: "server is running",
+        apiKey: keyLoaded
+    });
+});
 
-        // Check if the required data was sent from the frontend.
+// --- Main Chat Route ---
+app.post("/letschat", async (req, res) => {
+    try {
+        const { system, messages } = req.body;
+
+        console.log("Incoming request received");
+        console.log("System prompt length:", system ? system.length : "MISSING");
+        console.log("Messages count:", messages ? messages.length : "MISSING");
+
         if (!system || !messages) {
-            return res.status(400).json({ success: false, error: "Request body must contain 'system' and 'messages' properties." });
+            return res.status(400).json({
+                success: false,
+                error: "Request body must contain 'system' and 'messages' properties."
+            });
         }
 
         const response = await anthropic.messages.create({
             model: "claude-haiku-4-5-20251001",
-            // The system prompt is now taken directly from the request body.
-            system: system, 
-            // The messages are taken directly from the request body.
+            system: system,
             messages: messages,
             max_tokens: 1000,
             temperature: 0.7,
         });
-        
+
         return res.status(200).json({
             success: true,
-            data: response.content, // This is correct for Anthropic.
+            data: response.content,
         });
 
-    } catch (error) { 
-        console.error("Error in /letschat route:", error); 
+    } catch (error) {
+        console.error("Full error object:", error);
+        console.error("Error status:", error.status);
+        console.error("Error message:", error.message);
+        console.error("Error body:", JSON.stringify(error.body));
         return res.status(400).json({
             success: false,
-            error: error.response ? error.response.data: "There was a problem on the server",
+            error: error.message || "There was a problem on the server",
+            status: error.status || null,
+            detail: error.body || null
         });
     }
 });
 
 // --- Server Startup ---
-const port = process.env.PORT || 5000; // Sets the port for the server, using an environment variable or defaulting to 5000.
-
-// Starts the server and makes it listen for incoming requests on the specified port.
+const port = process.env.PORT || 5000;
 app.listen(port, () => console.log(`Server listening on port ${port}`));
