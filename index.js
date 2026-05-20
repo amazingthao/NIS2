@@ -23,7 +23,9 @@ app.get("/", async (req, res) => {
 
 // --- API Key Test Route ---
 app.get("/test", async (req, res) => {
-    const keyLoaded = process.env.ANTHROPIC_API_KEY ? "YES - key is present" : "NO - key is missing";
+    const keyLoaded = process.env.ANTHROPIC_API_KEY 
+        ? "YES - key is present" 
+        : "NO - key is missing";
     res.json({
         status: "server is running",
         apiKey: keyLoaded
